@@ -38,7 +38,7 @@ class Command(BaseCommand):
 
         # for images of product
         data_images = []
-        images = variable.images.split(',')
+        images = variable.images
         for image in images:
             obj = {
                 'src': image
@@ -50,11 +50,11 @@ class Command(BaseCommand):
         images_uniques = variations.values('images').distinct()
 
         for image_unique in images_uniques:
-            get_color = variations.filter(images=image_unique['images']).values('color').first()
-            image = image_unique['images'].split(',')
+            get_color = variations.filter(images=image_unique['images']).values('attribute_2_values').first()
+            image = image_unique['images']
             color_hex = self.getColorHexImage(image[0], get_color)
             data_colors.append(color_hex)
-            #Guardar en Database en Color Hex desde una imagen
+            # Guardar en Database en Color Hex desde una imagen
             variations.filter(images=image_unique['images']).update(color_hex=color_hex)
 
         # for variants
@@ -65,8 +65,8 @@ class Command(BaseCommand):
                 "sku": varation.sku,
                 "price": varation.price,
                 "inventory_quantity": varation.inventory_quantity,
-                "option1": varation.color,
-                "option2": varation.size,
+                "option1": varation.attribute_2_values[0],
+                "option2": varation.attribute_1_values[0],
                 "option3": varation.color_hex,
 
             }
@@ -75,10 +75,10 @@ class Command(BaseCommand):
         # for options
         data_options = []
 
-        obj = {"name": "Color", "values": variable.color.split("|")}
+        obj = {"name": "Color", "values": variable.attribute_2_values}
         data_options.append(obj)
 
-        obj = {"name": "Size", "values": variable.size.split("|")}
+        obj = {"name": "Size", "values": variable.attribute_1_values}
         data_options.append(obj)
 
         obj = {"name": "Color Hex", "values": data_colors}
@@ -97,13 +97,14 @@ class Command(BaseCommand):
             }
         }
 
+        print("Variable", data_json)
         return data_json
 
     def generateProductSimple(self, simple):
 
         # for images of product
         data_images = []
-        images = simple.images.split(',')
+        images = simple.images
         for image in images:
             obj = {
                 'src': image
@@ -117,32 +118,8 @@ class Command(BaseCommand):
             "sku": simple.sku,
             "price": simple.price,
             "inventory_quantity": simple.inventory_quantity
-            # "option1": simple.attribute_1_values,
-            # "option2": simple.attribute_2_values,
-            # "option3": simple.attribute_3_values,
-            # "option4": simple.attribute_4_values,
-            # "option5": simple.attribute_4_values,
-
         }
         data_variants.append(obj)
-
-        # for options
-        data_options = []
-
-        obj = {"name": simple.attribute_1_name}
-        data_options.append(obj)
-
-        obj = {"name": simple.attribute_2_name}
-        data_options.append(obj)
-
-        obj = {"name": simple.attribute_3_name}
-        data_options.append(obj)
-
-        obj = {"name": simple.attribute_4_name}
-        data_options.append(obj)
-
-        obj = {"name": simple.attribute_5_name}
-        data_options.append(obj)
 
         # for product
         data_json = {
@@ -152,10 +129,9 @@ class Command(BaseCommand):
                 "product_type": simple.type,
                 "images": data_images,
                 "variants": data_variants,
-                # "options": data_options,
             }
         }
-
+        print("Simple", data_json)
         return data_json
 
     def addProductShopify(self, data_json, type, product, variations=[]):
@@ -199,7 +175,7 @@ class Command(BaseCommand):
 
         for image_unique in images_uniques:
 
-            image = image_unique['images'].split(',')
+            image = image_unique['images']
 
             variant_ids = list(varations.filter(images=image_unique['images']).values_list('id_variant', flat=True))
 
@@ -238,7 +214,7 @@ class Command(BaseCommand):
         # Ordenar la lista por porcentaje (de mayor a menor)
         colors_sorted = sorted(colors, key=lambda c: c.proportion, reverse=True)
 
-        if color_name['color'] == 'White':
+        if color_name['attribute_2_values'] == 'White':
             color = colors_sorted[0]
             hex_color = webcolors.rgb_to_hex((color.rgb.r, color.rgb.g, color.rgb.b))
         else:

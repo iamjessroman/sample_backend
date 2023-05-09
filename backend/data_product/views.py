@@ -38,8 +38,8 @@ def get_product_identificator(request):
                 res['product']['type'] = modelo.type
                 res['product']['price'] = modelo.price
                 if modelo.type == 'variation':
-                    res['product']['option1'] = modelo.color
-                    res['product']['option2'] = modelo.size
+                    res['product']['option1'] = modelo.attribute_2_values[0]
+                    res['product']['option2'] = modelo.attribute_1_values[0]
 
                     for i, item in enumerate(res['product']['variants']):
 
