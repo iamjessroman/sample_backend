@@ -32,7 +32,20 @@ class Command(BaseCommand):
             print(row)
             p = Product(id=row['ID'], type=row['Type'], sku=row['SKU'], name=row['Name'],
                         description=row['description'], images=row['Images'], size=row['Attribute 1 value(s)'],
-                        color=row['Attribute 2 value(s)'], price=row['Regular price'],parent=row['Parent'])
+                        color=row['Attribute 2 value(s)'], price=row['Regular price'], inventory_quantity=row['Stock'],
+                        parent=row['Parent'],
+                        attribute_1_name=row["Attribute 1 name"],
+                        attribute_2_name=row["Attribute 2 name"],
+                        attribute_3_name=row["Attribute 3 name"],
+                        attribute_4_name=row[
+                            "Attribute 4 name"],
+                        attribute_5_name=row[
+                            "Attribute 5 name"],
+                        attribute_1_values=
+                        row["Attribute 1 value(s)"],
+                        attribute_2_values=row["Attribute 2 value(s)"],
+                        attribute_3_values=row["Attribute 3 value(s)"],
+                        attribute_4_values=row["Attribute 4 value(s)"],
+                        attribute_5_values=row[
+                            "Attribute 5 value(s)"])
             p.save()
-
-

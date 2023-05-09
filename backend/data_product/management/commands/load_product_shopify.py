@@ -26,20 +26,23 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
-        variables = Product.objects.filter(type="variable")
-        for variable in variables:
-            # print("Variable ----- ", variable.name)
-            variations = Product.objects.filter(parent=variable.sku)
-            request = self.generateProductVariable(variable, variations)
+        # variables = Product.objects.filter(type="variable")
+        # for variable in variables:
+        #     # print("Variable ----- ", variable.name)
+        #     variations = Product.objects.filter(parent=variable.sku)
+        #     request = self.generateProductVariable(variable, variations)
+        #
+        #     self.addProductShopify(request,"variable",variable, variations)
 
-            self.addProductShopify(request, variable, variations)
-            # self.addProductImageShopify(variable, variations)
-            # for varation in variations:
+        # for varation in variations:
+
         # print("Varation ", varation.name)
 
         simples = Product.objects.filter(type="simple")
-        # for row in simples:
-        # print("Simple ----- ", row.name)
+        for simple in simples:
+            request = self.generateProductSimple(simple)
+            self.addProductShopify(request, "simple", simple)
+            # print("Simple ----- ",simple.name)
 
     def generateProductVariable(self, variable, varations):
 
@@ -102,11 +105,43 @@ class Command(BaseCommand):
             }
         }
 
-        print(data_json)
+        return data_json
+
+    def generateProductSimple(self, simple):
+
+        # for images of product
+        data_images = []
+        images = simple.images.split(',')
+        for image in images:
+            obj = {
+                'src': image
+            }
+            data_images.append(obj)
+
+        # for unique variant
+        data_variants = []
+        obj = {
+            "title": simple.name,
+            "sku": simple.sku,
+            "price": simple.price,
+
+        }
+        data_variants.append(obj)
+
+        # for product
+        data_json = {
+            'product': {
+                "title": simple.name,
+                "body_html": simple.description,
+                "product_type": simple.type,
+                "images": data_images,
+                "variants": data_variants,
+            }
+        }
 
         return data_json
 
-    def addProductShopify(self, data_json, variable, variations):
+    def addProductShopify(self, data_json, type, product, variations=[]):
 
         url = BASE_URL + "admin/api/2022-10/products.json"
         headers = {'Content-Type': 'application/json', 'X-Shopify-Access-Token': ACCESS_TOKEN}
@@ -115,27 +150,30 @@ class Command(BaseCommand):
         if response.ok:
             # Manejar la respuesta exitosa
             # print('Petición POST exitosa', response.json())
-            self.updateProductfromShopify(variable, variations, json.loads(response.text))
+
+            self.updateProductfromShopify(type, json.loads(response.text), product, variations)
 
         else:
             # Manejar la respuesta de error
             print('Error al enviar la petición POST', response.json())
 
-    def updateProductfromShopify(self, variable, varations, response):
-        variable.id_product = response['product']['id']
-        variable.update_shopify = datetime.datetime.now()
-        variable.save()
+    def updateProductfromShopify(self, type, response, product, varations):
+        product.id_product = response['product']['id']
+        product.update_shopify = datetime.datetime.now()
+        if type == 'simple': product.id_variant = response['product']['variants'][0]['id']
+        product.save()
 
-        for variant in response['product']['variants']:
-            varation = varations.filter(sku=variant['sku'])
+        if type == 'variable':
+            for variant in response['product']['variants']:
+                varation = varations.filter(sku=variant['sku'])
 
-            for v in varation:
-                v.id_product = variant['product_id']
-                v.id_variant = variant['id']
-                v.update_shopify = datetime.datetime.now()
-                v.save()
+                for v in varation:
+                    v.id_product = variant['product_id']
+                    v.id_variant = variant['id']
+                    v.update_shopify = datetime.datetime.now()
+                    v.save()
 
-        self.addProductImageShopify(variable, varations)
+            self.addProductImageShopify(product, varations)
 
     def addProductImageShopify(self, variable, varations):
 
@@ -183,7 +221,7 @@ class Command(BaseCommand):
         # Ordenar la lista por porcentaje (de mayor a menor)
         colors_sorted = sorted(colors, key=lambda c: c.proportion, reverse=True)
 
-        if color_name['color'] =='White':
+        if color_name['color'] == 'White':
             color = colors_sorted[0]
             hex_color = webcolors.rgb_to_hex((color.rgb.r, color.rgb.g, color.rgb.b))
         else:
