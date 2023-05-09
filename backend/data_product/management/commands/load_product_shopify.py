@@ -57,8 +57,9 @@ class Command(BaseCommand):
         images_uniques = varations.values('images').distinct()
 
         for image_unique in images_uniques:
+            get_color = varations.filter(images=image_unique['images']).values('color').first()
             image = image_unique['images'].split(',')
-            color_hex = self.getColorHexImage(image[0])
+            color_hex = self.getColorHexImage(image[0], get_color)
             data_colors.append(color_hex)
             varations.filter(images=image_unique['images']).update(color_hex=color_hex)
 
@@ -168,7 +169,7 @@ class Command(BaseCommand):
                 # Manejar la respuesta de error
                 print('Error al enviar la petición POST', response.json())
 
-    def getColorHexImage(self, url_image):
+    def getColorHexImage(self, url_image, color_name):
 
         # Descargar la imagen desde la URL
         img_file = urllib.request.urlopen(url_image)
@@ -182,7 +183,11 @@ class Command(BaseCommand):
         # Ordenar la lista por porcentaje (de mayor a menor)
         colors_sorted = sorted(colors, key=lambda c: c.proportion, reverse=True)
 
-        color = colors_sorted[1]
-        hex_color = webcolors.rgb_to_hex((color.rgb.r, color.rgb.g, color.rgb.b))
+        if color_name['color'] =='White':
+            color = colors_sorted[0]
+            hex_color = webcolors.rgb_to_hex((color.rgb.r, color.rgb.g, color.rgb.b))
+        else:
+            color = colors_sorted[1]
+            hex_color = webcolors.rgb_to_hex((color.rgb.r, color.rgb.g, color.rgb.b))
 
         return hex_color

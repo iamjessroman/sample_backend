@@ -38,7 +38,6 @@ def get_product_identificator(request):
                 res['product']['type'] = modelo.type
                 res['product']['price'] = modelo.price
                 if modelo.type == 'variation':
-                    res['product']['variant'] = modelo.id_variant
                     res['product']['option1'] = modelo.color
                     res['product']['option2'] = modelo.size
 
