@@ -37,12 +37,31 @@ def get_product_identificator(request):
                 res = response.json()
                 res['product']['type'] = modelo.type
                 res['product']['price'] = modelo.price
-                # Devolver la respuesta como un objeto JSON
-                return JsonResponse(res)
+                if modelo.type == 'variation':
+                    res['product']['variant'] = modelo.id_variant
+                    res['product']['option1'] = modelo.color
+                    res['product']['option2'] = modelo.size
 
-            else:
-                # Manejar la respuesta de error
-                print('Error al enviar la petición POST', response.json())
+                    for i, item in enumerate(res['product']['variants']):
 
-        # Si la solicitud no es POST, devolver un error
-        return JsonResponse({'error': 'La solicitud debe ser POST'})
+                        if str(item['id']) == str(modelo.id_variant):
+                            index = i
+                            res['product']['index'] = index
+                            break
+
+                    for i, item in enumerate(res['product']['images']):
+
+                        if int(modelo.id_variant) in item['variant_ids']:
+                            index = i
+                            res['product']['index_image'] = index
+                            break
+
+            # Devolver la respuesta como un objeto JSON
+            return JsonResponse(res)
+
+        else:
+            # Manejar la respuesta de error
+            print('Error al enviar la petición POST', response.json())
+
+    # Si la solicitud no es POST, devolver un error
+    return JsonResponse({'error': 'La solicitud debe ser POST'})
