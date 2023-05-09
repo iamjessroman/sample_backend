@@ -1,23 +1,16 @@
 from django.core.management import BaseCommand
 
-import requests
-import json
 from PIL import Image
-from io import BytesIO
-import urllib.request
 import colorgram
-import webcolors
 import datetime
+import json
+import requests
+import urllib.request
+import webcolors
 
 # Import the model
-from data_product.models import Product
 from data_product.constants import BASE_URL, ACCESS_TOKEN
-
-ALREDY_LOADED_ERROR_MESSAGE = """
-If you need to reload the child data from the CSV file,
-first delete the db.sqlite3 file to destroy the database.
-Then, run `python manage.py migrate` for a new empty
-database with tables"""
+from data_product.models import Product
 
 
 class Command(BaseCommand):
@@ -26,18 +19,22 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
+        # Obtener Productos Tipo Variable
         variables = Product.objects.filter(type="variable")
         for variable in variables:
+            # Obtener Productos Tipo Variation según el producto Variable
             variations = Product.objects.filter(parent=variable.sku)
+            # Generar JSON para agregar producto a Shopify
             request = self.generateProductVariable(variable, variations)
-            self.addProductShopify(request,"variable",variable, variations)
+            # Add Product with Variants to Shopify
+            self.addProductShopify(request, "variable", variable, variations)
 
         simples = Product.objects.filter(type="simple")
         for simple in simples:
             request = self.generateProductSimple(simple)
             self.addProductShopify(request, "simple", simple)
 
-    def generateProductVariable(self, variable, varations):
+    def generateProductVariable(self, variable, variations):
 
         # for images of product
         data_images = []
@@ -50,18 +47,19 @@ class Command(BaseCommand):
 
         # get Colors
         data_colors = []
-        images_uniques = varations.values('images').distinct()
+        images_uniques = variations.values('images').distinct()
 
         for image_unique in images_uniques:
-            get_color = varations.filter(images=image_unique['images']).values('color').first()
+            get_color = variations.filter(images=image_unique['images']).values('color').first()
             image = image_unique['images'].split(',')
             color_hex = self.getColorHexImage(image[0], get_color)
             data_colors.append(color_hex)
-            varations.filter(images=image_unique['images']).update(color_hex=color_hex)
+            #Guardar en Database en Color Hex desde una imagen
+            variations.filter(images=image_unique['images']).update(color_hex=color_hex)
 
         # for variants
         data_variants = []
-        for varation in varations:
+        for varation in variations:
             obj = {
                 "title": varation.name,
                 "sku": varation.sku,
