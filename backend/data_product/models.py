@@ -22,11 +22,15 @@ class Product(models.Model):
 
     color_hex = models.CharField(max_length=100, default='')
 
+    price = models.FloatField(default=0)
+
     parent = models.CharField(max_length=100, default='')
 
     id_product = models.CharField(max_length=100)
 
     id_variant = models.CharField(max_length=100)
+
+    update_shopify = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
         return self.name

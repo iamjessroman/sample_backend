@@ -7,6 +7,7 @@ from io import BytesIO
 import urllib.request
 import colorgram
 import webcolors
+import datetime
 
 # Import the model
 from data_product.models import Product
@@ -67,9 +68,11 @@ class Command(BaseCommand):
             obj = {
                 "title": varation.name,
                 "sku": varation.sku,
+                "price": varation.price,
                 "option1": varation.color,
                 "option2": varation.size,
                 "option3": varation.color_hex,
+
             }
             data_variants.append(obj)
 
@@ -90,9 +93,11 @@ class Command(BaseCommand):
             'product': {
                 "title": variable.name,
                 "body_html": variable.description,
+                "product_type": variable.type,
                 "images": data_images,
                 "variants": data_variants,
-                "options": data_options
+                "options": data_options,
+
             }
         }
 
@@ -117,6 +122,7 @@ class Command(BaseCommand):
 
     def updateProductfromShopify(self, variable, varations, response):
         variable.id_product = response['product']['id']
+        variable.update_shopify = datetime.datetime.now()
         variable.save()
 
         for variant in response['product']['variants']:
@@ -125,6 +131,7 @@ class Command(BaseCommand):
             for v in varation:
                 v.id_product = variant['product_id']
                 v.id_variant = variant['id']
+                v.update_shopify = datetime.datetime.now()
                 v.save()
 
         self.addProductImageShopify(variable, varations)

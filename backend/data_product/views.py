@@ -34,8 +34,11 @@ def get_product_identificator(request):
             if response.ok:
                 # Manejar la respuesta exitosa
                 # print('Petición POST exitosa', response.json())
+                res = response.json()
+                res['product']['type'] = modelo.type
+                res['product']['price'] = modelo.price
                 # Devolver la respuesta como un objeto JSON
-                return JsonResponse(response.json())
+                return JsonResponse(res)
 
             else:
                 # Manejar la respuesta de error

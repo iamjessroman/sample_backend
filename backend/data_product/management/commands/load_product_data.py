@@ -32,7 +32,7 @@ class Command(BaseCommand):
             print(row)
             p = Product(id=row['ID'], type=row['Type'], sku=row['SKU'], name=row['Name'],
                         description=row['description'], images=row['Images'], size=row['Attribute 1 value(s)'],
-                        color=row['Attribute 2 value(s)'], parent=row['Parent'])
+                        color=row['Attribute 2 value(s)'], price=row['Regular price'],parent=row['Parent'])
             p.save()
 
 
