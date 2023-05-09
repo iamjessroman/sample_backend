@@ -26,23 +26,16 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
-        # variables = Product.objects.filter(type="variable")
-        # for variable in variables:
-        #     # print("Variable ----- ", variable.name)
-        #     variations = Product.objects.filter(parent=variable.sku)
-        #     request = self.generateProductVariable(variable, variations)
-        #
-        #     self.addProductShopify(request,"variable",variable, variations)
-
-        # for varation in variations:
-
-        # print("Varation ", varation.name)
+        variables = Product.objects.filter(type="variable")
+        for variable in variables:
+            variations = Product.objects.filter(parent=variable.sku)
+            request = self.generateProductVariable(variable, variations)
+            self.addProductShopify(request,"variable",variable, variations)
 
         simples = Product.objects.filter(type="simple")
         for simple in simples:
             request = self.generateProductSimple(simple)
             self.addProductShopify(request, "simple", simple)
-            # print("Simple ----- ",simple.name)
 
     def generateProductVariable(self, variable, varations):
 
@@ -73,6 +66,7 @@ class Command(BaseCommand):
                 "title": varation.name,
                 "sku": varation.sku,
                 "price": varation.price,
+                "inventory_quantity": varation.inventory_quantity,
                 "option1": varation.color,
                 "option2": varation.size,
                 "option3": varation.color_hex,
@@ -124,9 +118,33 @@ class Command(BaseCommand):
             "title": simple.name,
             "sku": simple.sku,
             "price": simple.price,
+            "inventory_quantity": simple.inventory_quantity
+            # "option1": simple.attribute_1_values,
+            # "option2": simple.attribute_2_values,
+            # "option3": simple.attribute_3_values,
+            # "option4": simple.attribute_4_values,
+            # "option5": simple.attribute_4_values,
 
         }
         data_variants.append(obj)
+
+        # for options
+        data_options = []
+
+        obj = {"name": simple.attribute_1_name}
+        data_options.append(obj)
+
+        obj = {"name": simple.attribute_2_name}
+        data_options.append(obj)
+
+        obj = {"name": simple.attribute_3_name}
+        data_options.append(obj)
+
+        obj = {"name": simple.attribute_4_name}
+        data_options.append(obj)
+
+        obj = {"name": simple.attribute_5_name}
+        data_options.append(obj)
 
         # for product
         data_json = {
@@ -136,6 +154,7 @@ class Command(BaseCommand):
                 "product_type": simple.type,
                 "images": data_images,
                 "variants": data_variants,
+                # "options": data_options,
             }
         }
 

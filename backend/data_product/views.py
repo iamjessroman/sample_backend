@@ -27,7 +27,6 @@ def get_product_identificator(request):
             # Obtener el objeto Modelo usando los datos enviados en la solicitud POST
             modelo = Product.objects.get(sku=data['sku'])
 
-
             url = BASE_URL + "admin/api/2022-10/products/" + modelo.id_product + ".json"
             headers = {'Content-Type': 'application/json', 'X-Shopify-Access-Token': ACCESS_TOKEN}
 
@@ -55,6 +54,20 @@ def get_product_identificator(request):
                             index = i
                             res['product']['index_image'] = index
                             break
+
+                if modelo.type == 'simple':
+                    options_atributtes = []
+                    for i in range(5):
+                        attr_name = f"attribute_{i + 1}_name"
+                        attr_value = f"attribute_{i + 1}_values"
+                        obj = {
+                            "name": getattr(modelo, attr_name),
+                            "value": getattr(modelo, attr_value),
+                        }
+
+                        options_atributtes.append(obj)
+
+                    res['product']['options_atributtes'] = options_atributtes
 
             # Devolver la respuesta como un objeto JSON
             return JsonResponse(res)
